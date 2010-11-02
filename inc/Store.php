@@ -6,9 +6,9 @@ class Store {
 	private $db;	# database handle
 	
 	function __construct( $path ) {
-		$filename = 'db/$path';
+		$filename = "db/$path";
 		Log::msg( "Creating tables." );
-		`cat schema.sqlite3 | sqlite3 $filename`;
+		`cat db/schema.sqlite3 | sqlite3 $filename`;
 		$this->db = new SQLite3( $filename );
 	}
 	

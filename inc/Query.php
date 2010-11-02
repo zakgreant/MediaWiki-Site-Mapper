@@ -21,7 +21,7 @@ class Query {
 	/**
 	 * Make a query URL from $this->url and an associative array of parameters
 	 */
-	function make_query( $parameters ){
+	function make_querystring( $parameters ){
 		ksort( $parameters );
 		$q = array();
 		foreach( $parameters as $name => $value ){
@@ -31,7 +31,7 @@ class Query {
 		return $this->url . '?' . join( '&', $q );
 	}
 	
-	function query( $parameters ){
+	function run( $parameters ){
 		$query = $this->make_querystring( $parameters );
 		
 		$result = $this->cache->fetch( md5($query) );

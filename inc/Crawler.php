@@ -8,7 +8,7 @@ class Crawler {
 	private $throttle = 1000;		# milliseconds to sleep between requests
 	private $url;					# URL to a MediaWiki instances api.php
 	
-	function __construct( $url, $initial_page_title ) {
+	function __construct( $url ) {
 		$this->url = $url;
 		
 		$this->query = new Query( md5( $url ) );
@@ -39,7 +39,7 @@ class Crawler {
 			return true;
 		}
 		
-		$result = $this->query( $parameters );
+		$result = $this->query->run( $parameters );
 		
 		foreach( $result['query']['pages'] as $page ){
 			
