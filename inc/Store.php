@@ -5,11 +5,14 @@
 class Store {
 	private $db;	# database handle
 	
-	function __construct( $path ) {
+	function __construct( $path, $flags = null ){
+		if( ! $flags ){
+			$flags = SQLITE3_OPEN_READWRITE | SQLITE3_OPEN_CREATE;
+		}
 		$filename = "db/$path.sqlite3";
 		Log::msg( "Creating tables." );
 		`cat db/schema.sqlite3 | sqlite3 $filename`;
-		$this->db = new SQLite3( $filename );
+		$this->db = new SQLite3( $filename, $flags );
 	}
 	
 	function quote_list( $array, $quote ){
