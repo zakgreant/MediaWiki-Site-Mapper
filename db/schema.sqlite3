@@ -1,0 +1,26 @@
+CREATE TABLE IF NOT EXISTS link (
+	parent,
+	child,
+	UNIQUE (parent, child) ON CONFLICT IGNORE
+);
+
+CREATE TABLE IF NOT EXISTS page (
+	pageid UNIQUE ON CONFLICT REPLACE,
+	counter,
+	lastrevid,
+	length,
+	missing,
+	new,
+	ns,
+	redirect,
+	title,
+	touched
+);
+
+CREATE TABLE IF NOT EXISTS log (
+	pageid UNIQUE ON CONFLICT IGNORE
+);
+
+CREATE TABLE IF NOT EXISTS queue (
+	pageid UNIQUE ON CONFLICT IGNORE
+);

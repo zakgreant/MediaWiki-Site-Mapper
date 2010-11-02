@@ -1,0 +1,3 @@
+PHP script to crawl and map out a MediaWiki instance using the MediaWiki API.
+
+Caution: This script is hardly tested.  Use at your own risk.
