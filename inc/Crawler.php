@@ -5,13 +5,12 @@
 class Crawler {
 	private $query;					# an instance of the Query class	
 	private $store;					# an instance of the Store class
-	private $throttle = 1000;		# milliseconds to sleep between requests
 	private $url;					# URL to a MediaWiki instances api.php
 	
 	function __construct( $url ) {
 		$this->url = $url;
 		
-		$this->query = new Query( md5( $url ) );
+		$this->query = new Query( $url );
 		$this->store = new Store( md5( $url ) );
 	}
 	
@@ -26,7 +25,9 @@ class Crawler {
 			)
 		);
 		
-		$this->process_queue();
+		do {
+			$return = $this->process_queue();
+		} while ( $return );
 	}
 	
 	function query_and_store( $parameters ){		
@@ -41,27 +42,29 @@ class Crawler {
 		
 		$result = $this->query->run( $parameters );
 		
-		foreach( $result['query']['pages'] as $page ){
-			
-			/* Force missing to have a value if it is set.
-			 * Without this sqlite can't tell the difference between
-			 * a result set that that omits missing and that has missing = ''
+		foreach( $result['query']['pages'] as $page ){			
+			/* Force prop missing to have a value if it is set.
+			 * Without this sqlite can't tell the difference between a
+			 * result set that that omits missing and that has missing = ''
 			*/
 			if( array_key_exists( 'missing', $page ) ){
 				$page['missing'] = 1;
 			}
-			
-			$this->store->page( $page );
-			
-			# if we've run generator=links, queue page and record link
+
+			$this->store->store_page( $page );
+		
+			if( ! $page['missing'] ){	# don't queue missing pages
+				$this->store->enqueue( $page['pageid'] );	# queue page
+			}
+		
+			# if we've run generator=links record link
 			if( $parameters['generator'] == 'links' ){
-				$this->store->enqueue( $page['pageid'] );
 				$this->store->store_link(
 					$parameters['pageids'], $page['pageid']
 				);
 			}
 		}
-		
+
 		if( $result['query-continue'] ){
 			foreach( $result['query-continue'] as $continue ){
 				foreach( $continue as $key => $value ){
@@ -75,6 +78,7 @@ class Crawler {
 
 	function process_queue(){
 		$pageid = $this->store->queue_shift(); # shift a pageid off top of queue
+		Log::msg( "Processing #$pageid from queue." );
 		
 		# fetch linked page for page $pageid
 		$this->query_and_store(
@@ -90,10 +94,8 @@ class Crawler {
 		
 		$this->store->log( $pageid );	# note that we've processed the pageid
 		
-		if( $this->throttle ){
-			usleep( $this->throttle );
-		}
+		return $pageid;
 	}
 	
-	function throttle( $milliseconds ){ $this->throttle = $milliseconds; }
+	function throttle( $ms ){ $this->query->throttle( $ms ); }
 }

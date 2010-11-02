@@ -6,7 +6,7 @@ class Store {
 	private $db;	# database handle
 	
 	function __construct( $path ) {
-		$filename = "db/$path";
+		$filename = "db/$path.sqlite3";
 		Log::msg( "Creating tables." );
 		`cat db/schema.sqlite3 | sqlite3 $filename`;
 		$this->db = new SQLite3( $filename );
@@ -14,19 +14,22 @@ class Store {
 	
 	function quote_list( $array, $quote ){
 		$array = array_map( 'SQLite3::escapeString', $array );
-		return $quote . join("$quote,$quote", $quoted_list ) . $quote;
+		return $quote . join("$quote,$quote", $array) . $quote;
 	}
 	
 	function dequeue( $pageid ){
+		Log::msg( "Removing #$pageid from the queue." );
 		return $this->db->exec("DELETE FROM queue WHERE pageid='$pageid'");
 	}
 	
 	function enqueue( $pageid ){
+		Log::msg( "Inserting #$pageid into the queue." );
 		return $this->db->exec("INSERT INTO queue VALUES ('$pageid')");
 	}
 
 	function log( $pageid ){
-		return $this->db->exec("INSERT INTO log VALUES ('$pageid')");
+		Log::msg( "Inserting #$pageid into the log." );
+		return $this->db->exec("INSERT INTO log (pageid) VALUES ('$pageid')");
 	}
 	
 	function in_log( $pageid ){
@@ -38,6 +41,7 @@ class Store {
 	function queue_shift(){
 		$pageid = $this->db->querySingle( "SELECT pageid FROM queue LIMIT 1");
 		$this->dequeue( $pageid );
+		Log::msg( "Popping #$pageid from the queue." );
 		return $pageid;
 	}
 	

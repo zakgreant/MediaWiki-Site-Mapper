@@ -36,10 +36,14 @@ class Cache {
 	}
 	
 	function fetch( $hash ){
-		$path = "$this->path/$hash";
-		$result = file_get_contents( $path );
+		$filename = "$this->path/$hash";
+		if( ! file_exists( $filename ) ){
+			return false;
+		}
+		
+		$result = file_get_contents( $filename );
 		$bytes = strlen( $result );
-		Log::msg( "Fetching $bytes bytes from cache file '$path'." );
+		Log::msg( "Fetching $bytes bytes from cache file '$filename'." );
 		return $result;
 	}
 	
